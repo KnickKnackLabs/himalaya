@@ -2,16 +2,92 @@ name: Releases
 
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to build and upload
+        type: string
+        required: true
   push:
     tags:
       - v*
-    branches:
-      - main
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
 
 jobs:
-  release:
-    uses: pimalaya/nix/.github/workflows/releases.yml@master
-    secrets: inherit
-    with:
-      project: himalaya
-      nixpkgs: staging-next
+  prepare-release:
+    name: prepare release
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Create GitHub release if needed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release exists: $RELEASE_TAG"
+          else
+            gh release create "$RELEASE_TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "himalaya $RELEASE_TAG" \
+              --notes "KKL fork release for the mml-lib OpenPGP signature attachment-name patch."
+          fi
+
+  build:
+    name: build ${{ matrix.asset }}
+    needs: prepare-release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            asset: x86_64-linux
+          - os: macos-15-intel
+            asset: x86_64-darwin
+          - os: macos-15
+            asset: aarch64-darwin
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Install Rust 1.82
+        run: |
+          set -euo pipefail
+          rustup toolchain install 1.82.0 --profile minimal
+          rustup default 1.82.0
+          rustc --version
+          cargo --version
+
+      - name: Build release binary
+        run: cargo build --locked --release
+
+      - name: Package release asset
+        run: |
+          set -euo pipefail
+          package_dir="dist/package"
+          asset="himalaya.${{ matrix.asset }}.tgz"
+          mkdir -p "$package_dir"
+          cp target/release/himalaya "$package_dir/himalaya"
+          chmod +x "$package_dir/himalaya"
+          "$package_dir/himalaya" --version
+          strip "$package_dir/himalaya" 2>/dev/null || true
+          tar -czf "dist/$asset" -C "$package_dir" himalaya
+          shasum -a 256 "dist/$asset" | tee "dist/$asset.sha256"
+
+      - name: Upload release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          asset="himalaya.${{ matrix.asset }}.tgz"
+          gh release upload "$RELEASE_TAG" \
+            "dist/$asset" \
+            "dist/$asset.sha256" \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
