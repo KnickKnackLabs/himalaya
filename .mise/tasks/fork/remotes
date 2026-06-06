@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+#MISE description="Configure KKL fork remotes"
+
+set -euo pipefail
+
+repo="himalaya"
+origin_url="https://github.com/KnickKnackLabs/${repo}.git"
+upstream_url="https://github.com/pimalaya/${repo}.git"
+
+if git remote get-url origin >/dev/null 2>&1; then
+  git remote set-url origin "$origin_url"
+else
+  git remote add origin "$origin_url"
+fi
+
+if git remote get-url upstream >/dev/null 2>&1; then
+  git remote set-url upstream "$upstream_url"
+else
+  git remote add upstream "$upstream_url"
+fi
+
+git fetch origin --prune
+git fetch upstream --prune
+
+printf 'origin   -> %s\n' "$(git remote get-url origin)"
+printf 'upstream -> %s\n' "$(git remote get-url upstream)"
