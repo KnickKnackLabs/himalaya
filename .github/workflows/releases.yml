@@ -60,12 +60,11 @@ jobs:
         run: |
           set -euo pipefail
           rustup toolchain install stable --profile minimal
-          rustup default stable
-          rustc --version
-          cargo --version
+          rustc +stable --version
+          cargo +stable --version
 
       - name: Build release binary
-        run: cargo build --locked --release
+        run: cargo +stable build --locked --release
 
       - name: Package release asset
         run: |
