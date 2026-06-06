@@ -7,7 +7,7 @@ on:
         description: Operating system
         type: choice
         required: true
-        default: ubuntu-latest
+        default: ubuntu-24.04
         options:
           - ubuntu-24.04
           - macos-13
@@ -18,7 +18,6 @@ on:
         required: true
         options:
           - aarch64-apple-darwin
-          - aarch64-unknown-linux-musl
           - aarch64-unknown-linux-musl
           - armv6l-unknown-linux-musleabihf
           - armv7l-unknown-linux-musleabihf
@@ -37,6 +36,7 @@ jobs:
     secrets: inherit
     with:
       project: himalaya
+      nixpkgs: staging-next
       os: ${{ inputs.os }}
       target: ${{ inputs.target }}
       features: ${{ inputs.features }}
