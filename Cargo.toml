@@ -1,7 +1,7 @@
 [package]
 name = "himalaya"
 description = "CLI to manage emails"
-version = "1.2.0"
+version = "1.2.0-kkl.1"
 authors = ["Clément DOUIN <pimalaya.org@posteo.net>"]
 edition = "2021"
 license = "MIT"
@@ -52,3 +52,15 @@ toml = "0.8"
 tracing = "0.1"
 url = "2.2"
 uuid = { version = "1.19", features = ["v4"] }
+
+[patch.crates-io]
+email-lib = { git = "https://github.com/KnickKnackLabs/core", package = "email-lib", tag = "mml-v1.1.2-kkl.1" }
+http-lib = { git = "https://github.com/KnickKnackLabs/core", package = "http-lib", tag = "mml-v1.1.2-kkl.1" }
+keyring-lib = { git = "https://github.com/KnickKnackLabs/core", package = "keyring-lib", tag = "mml-v1.1.2-kkl.1" }
+mml-lib = { git = "https://github.com/KnickKnackLabs/core", package = "mml-lib", tag = "mml-v1.1.2-kkl.1" }
+oauth-lib = { git = "https://github.com/KnickKnackLabs/core", package = "oauth-lib", tag = "mml-v1.1.2-kkl.1" }
+pgp-lib = { git = "https://github.com/KnickKnackLabs/core", package = "pgp-lib", tag = "mml-v1.1.2-kkl.1" }
+process-lib = { git = "https://github.com/KnickKnackLabs/core", package = "process-lib", tag = "mml-v1.1.2-kkl.1" }
+rip-starttls = { git = "https://github.com/KnickKnackLabs/core", package = "rip-starttls", tag = "mml-v1.1.2-kkl.1" }
+secret-lib = { git = "https://github.com/KnickKnackLabs/core", package = "secret-lib", tag = "mml-v1.1.2-kkl.1" }
+shellexpand-utils = { git = "https://github.com/KnickKnackLabs/core", package = "shellexpand-utils", tag = "mml-v1.1.2-kkl.1" }
