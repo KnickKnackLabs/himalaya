@@ -23,6 +23,36 @@ jobs:
     name: prepare release
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Verify package version matches release tag
+        run: |
+          set -euo pipefail
+          expected="${RELEASE_TAG#v}"
+          actual="$(
+            awk '
+              /^\[package\]$/ { in_package = 1; next }
+              /^\[/ && in_package { exit }
+              in_package && /^version = / {
+                gsub(/^version = "/, "")
+                gsub(/"$/, "")
+                print
+                exit
+              }
+            ' Cargo.toml
+          )"
+          if [ -z "$actual" ]; then
+            echo "Could not read package version from Cargo.toml" >&2
+            exit 1
+          fi
+          if [ "$actual" != "$expected" ]; then
+            echo "Package version ($actual) does not match release tag ($RELEASE_TAG)" >&2
+            exit 1
+          fi
+          echo "Package version matches release tag: $actual"
+
       - name: Create GitHub release if needed
         env:
           GH_TOKEN: ${{ github.token }}
